@@ -57,9 +57,6 @@ class SunTest < Minitest::Test
     eccentricity_of_earth_orbit = Sun.eccentricity_of_earth_orbit(julian_century)
     assert_sun_calculation 0.016704428, eccentricity_of_earth_orbit, 'eccentricity of earth orbit'
 
-    equation_of_time = Sun.equation_of_time(julian_century, y)
-    assert_sun_calculation(-3.646899915, equation_of_time)
-
     equation_of_center = Sun.equation_of_center(julian_century)
     assert_sun_calculation(-0.063715576, equation_of_center, 'equation of center')
 
@@ -72,10 +69,13 @@ class SunTest < Minitest::Test
     declination = Sun.declination(oblique_correction, julian_century)
     assert_sun_calculation(-22.96864765, declination)
 
-    hour_angle = Sun.hour_angle(latitude, declination)
+    equation_of_time = Sun.equation_of_time(time, longitude)
+    assert_sun_calculation(-3.646899915, equation_of_time)
+
+    hour_angle = Sun.hour_angle(time, latitude)
     assert_sun_calculation 69.85778153, hour_angle
 
-    solar_noon_minutes = Sun.solar_noon_minutes(longitude, equation_of_time)
+    solar_noon_minutes = Sun.solar_noon_minutes(time, latitude, longitude)
     assert_sun_calculation 1019.6069, solar_noon_minutes, 'solar noon minutes'
 
     solar_noon = Sun.solar_noon(time, latitude, longitude)
