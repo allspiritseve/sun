@@ -96,14 +96,24 @@ module Sun
     solar_noon_minutes(longitude, equation_of_time) + 4 * hour_angle
   end
 
+  def self.solar_noon(time, latitude, longitude)
+    julian_century = julian_century(time)
+    oblique_correction = oblique_correction(julian_century)
+    declination = declination(oblique_correction, julian_century)
+    hour_angle = hour_angle(latitude, declination)
+    equation_of_time = equation_of_time(julian_century, y(oblique_correction))
+    minutes = solar_noon_minutes(longitude, equation_of_time)
+    date_at_time(time.to_date, minutes)
+  end
+
   def self.sunrise(time, latitude, longitude)
     julian_century = julian_century(time)
     oblique_correction = oblique_correction(julian_century)
     declination = declination(oblique_correction, julian_century)
     hour_angle = hour_angle(latitude, declination)
     equation_of_time = equation_of_time(julian_century, y(oblique_correction))
-    sunrise_minutes = sunrise_minutes(longitude, equation_of_time, hour_angle)
-    date_at_time(time.to_date, sunrise_minutes)
+    minutes = sunrise_minutes(longitude, equation_of_time, hour_angle)
+    date_at_time(time.to_date, minutes)
   end
 
   def self.sunset(time, latitude, longitude)
@@ -112,7 +122,7 @@ module Sun
     declination = declination(oblique_correction, julian_century)
     hour_angle = hour_angle(latitude, declination)
     equation_of_time = equation_of_time(julian_century, y(oblique_correction))
-    sunset_minutes = sunset_minutes(longitude, equation_of_time, hour_angle)
-    date_at_time(time.to_date, sunset_minutes)
+    minutes = sunset_minutes(longitude, equation_of_time, hour_angle)
+    date_at_time(time.to_date, minutes)
   end
 end

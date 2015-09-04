@@ -78,8 +78,11 @@ class SunTest < Minitest::Test
     solar_noon_minutes = Sun.solar_noon_minutes(longitude, equation_of_time)
     assert_sun_calculation 1019.6069, solar_noon_minutes, 'solar noon minutes'
 
+    solar_noon = Sun.solar_noon(time, latitude, longitude)
+    assert_sun_calculation Time.parse('2010-01-01 11:59:36 EST'), Time.at(solar_noon), 'solar_noon', 1
+
     sunrise = Sun.sunrise(time, latitude, longitude)
-    assert_sun_calculation Time.parse('2010-01-01 07:20:11 EST').to_i, sunrise, 'sunrise', 1
+    assert_sun_calculation Time.parse('2010-01-01 07:20:11 EST'), Time.at(sunrise), 'sunrise', 1
 
     sunset = Sun.sunset(time, latitude, longitude)
     assert_sun_calculation Time.parse('2010-01-01 16:39:02 EST'), Time.at(sunset), 'sunset', 1
