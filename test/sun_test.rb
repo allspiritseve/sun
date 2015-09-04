@@ -36,13 +36,13 @@ class SunTest < Minitest::Test
     julian_days = Sun.julian_days(time)
     assert_sun_calculation 2455198 + Rational(5, 24), julian_days
 
-    julian_century = Sun.julian_century(julian_days)
+    julian_century = Sun.julian_century(time)
     assert_sun_calculation(0.10001369, julian_century, 'julian century')
 
     mean_obliquity_of_ecliptic = Sun.mean_obliquity_of_ecliptic(julian_century)
     assert_sun_calculation 23.43799044, mean_obliquity_of_ecliptic.to_f
 
-    oblique_correction = Sun.oblique_correction(julian_century, mean_obliquity_of_ecliptic)
+    oblique_correction = Sun.oblique_correction(julian_century)
     assert_sun_calculation 23.43893238, oblique_correction
 
     geometric_mean_anomoly = Sun.geometric_mean_anomoly(julian_century)
@@ -51,37 +51,38 @@ class SunTest < Minitest::Test
     geometric_mean_longitude = Sun.geometric_mean_longitude(julian_century)
     assert_sun_calculation 281.2416129, geometric_mean_longitude, 'geometric mean longitude'
 
-    var_y = Sun.var_y(oblique_correction)
-    assert_sun_calculation 0.043033175, var_y
+    y = Sun.y(oblique_correction)
+    assert_sun_calculation 0.043033175, y
 
     eccentricity_of_earth_orbit = Sun.eccentricity_of_earth_orbit(julian_century)
     assert_sun_calculation 0.016704428, eccentricity_of_earth_orbit, 'eccentricity of earth orbit'
 
-    equation_of_time = Sun.equation_of_time(var_y, geometric_mean_longitude, geometric_mean_anomoly, eccentricity_of_earth_orbit)
+    equation_of_time = Sun.equation_of_time(julian_century, y)
     assert_sun_calculation(-3.646899915, equation_of_time)
 
-    equation_of_center = Sun.equation_of_center(geometric_mean_anomoly, julian_century)
+    equation_of_center = Sun.equation_of_center(julian_century)
     assert_sun_calculation(-0.063715576, equation_of_center, 'equation of center')
 
-    true_longitude = Sun.true_longitude(geometric_mean_longitude, equation_of_center)
+    true_longitude = Sun.true_longitude(julian_century)
     assert_sun_calculation 281.1778973, true_longitude, 'true longitude'
 
-    apparent_longitude = Sun.apparent_longitude(true_longitude, julian_century)
+    apparent_longitude = Sun.apparent_longitude(julian_century)
     assert_sun_calculation 281.176652, apparent_longitude
 
-    declination = Sun.declination(oblique_correction, apparent_longitude)
+    declination = Sun.declination(oblique_correction, julian_century)
     assert_sun_calculation(-22.96864765, declination)
 
-    hour_angle_sunrise = Sun.hour_angle_sunrise(latitude, declination)
-    assert_sun_calculation 69.85778153, hour_angle_sunrise
+    hour_angle = Sun.hour_angle(latitude, declination)
+    assert_sun_calculation 69.85778153, hour_angle
 
-    solar_noon = Sun.solar_noon(longitude, equation_of_time)
-    assert_sun_calculation 1019.6069, solar_noon, 'solar_noon'
+    solar_noon_minutes = Sun.solar_noon_minutes(longitude, equation_of_time)
+    assert_sun_calculation 1019.6069, solar_noon_minutes, 'solar noon minutes'
 
-    assert_equal Time.utc(2010, 1, 1, 16, 59, 36).to_i, Sun.date_at_time(time.to_date, solar_noon).to_i, 'date at time'
-
-    sunrise = Sun.rise(time.to_date, longitude, equation_of_time, hour_angle_sunrise)
+    sunrise = Sun.sunrise(time, latitude, longitude)
     assert_sun_calculation Time.parse('2010-01-01 07:20:11 EST').to_i, sunrise, 'sunrise', 1
+
+    sunset = Sun.sunset(time, latitude, longitude)
+    assert_sun_calculation Time.parse('2010-01-01 16:39:02 EST'), Time.at(sunset), 'sunset', 1
   end
 
   private
