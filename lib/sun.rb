@@ -1,28 +1,52 @@
+require 'date'
 require 'sun/version'
 
 module Sun
+  # The approximate correction for atmospheric refraction at sunrise and sunset
   SOLAR_ZENITH = 90.833
 
-  # Noon on January 1st, 2000
+  # 2000-01-01 12:00:00 UTC in Julian days
   JULIAN_CONSTANT = 2451545.to_r
 
-  # Sun times
-  def self.solar_noon(time, latitude, longitude)
-    minutes = solar_noon_minutes(time, latitude, longitude)
-    date_at_time(time.to_date, minutes)
+  class InvalidTime < StandardError
   end
 
+  # Sun times (UTC)
   def self.sunrise(time, latitude, longitude)
-    minutes = sunrise_minutes(time, latitude, longitude)
-    date_at_time(time.to_date, minutes)
+    sun_time(:sunrise, time, latitude, longitude)
+  end
+
+  def self.solar_noon(time, latitude, longitude)
+    sun_time(:solar_noon, time, latitude, longitude)
   end
 
   def self.sunset(time, latitude, longitude)
-    minutes = sunset_minutes(time, latitude, longitude)
-    date_at_time(time.to_date, minutes)
+    sun_time(:sunset, time, latitude, longitude)
+  end
+
+  # Sun times in minutes after midnight (UTC)
+  def self.sunrise_minutes(time, latitude, longitude)
+    sun_time_minutes(:sunrise, time, latitude, longitude)
+  end
+
+  def self.solar_noon_minutes(time, latitude, longitude)
+    sun_time_minutes(:solar_noon, time, latitude, longitude)
+  end
+
+  def self.sunset_minutes(time, latitude, longitude)
+    sun_time_minutes(:sunset, time, latitude, longitude)
   end
 
   # Helpers
+  def self.to_date(time)
+    case time
+    when Date then time
+    when Time then time.to_date
+    else
+      raise InvalidTime, "must pass a Date or Time object"
+    end
+  end
+
   def self.degrees(radians)
     180.0 * radians / Math::PI
   end
@@ -36,11 +60,23 @@ module Sun
   end
 
   def self.date_at_time(date, minutes)
-    date_to_unix_time(date) + minutes * 60
+    Time.at(date_to_unix_time(date) + minutes * 60)
+  end
+
+  def self.local_time(date, minutes)
+    [date.year, date.month, date.day, *minutes_to_time_of_day(minutes)]
+  end
+
+  def self.minutes_to_time_of_day(minutes)
+    [(minutes / 60).to_i, (minutes % 60).to_i, (minutes % 60) % 1]
   end
 
   def self.julian_days(time)
-    time.utc.to_datetime.ajd
+    if time.is_a?(Time)
+      time.to_datetime.ajd
+    else
+      to_date(time).ajd
+    end
   end
 
   def self.julian_century(time)
@@ -90,8 +126,8 @@ module Sun
     degrees(Math.asin(Math.sin(radians(oblique_correction)) * Math.sin(radians(apparent_longitude(julian_century)))))
   end
 
-  def self.equation_of_time(time, longitude)
-    julian_century = julian_century(time)
+  def self.equation_of_time(date, longitude)
+    julian_century = julian_century(date)
     oblique_correction = oblique_correction(julian_century)
     geometric_mean_anomoly = geometric_mean_anomoly(julian_century)
     geometric_mean_longitude = geometric_mean_longitude(julian_century)
@@ -100,22 +136,36 @@ module Sun
     4 * degrees(y * Math.sin(2 * radians(geometric_mean_longitude)) - 2 * eccentricity_of_earth_orbit * Math.sin(radians(geometric_mean_anomoly)) + 4 * eccentricity_of_earth_orbit * y * Math.sin(radians(geometric_mean_anomoly)) * Math.cos(2 * radians(geometric_mean_longitude)) - 0.5 * y * y * Math.sin(4 * radians(geometric_mean_longitude)) - 1.25 * eccentricity_of_earth_orbit * eccentricity_of_earth_orbit * Math.sin(2 * radians(geometric_mean_anomoly)))
   end
 
-  def self.hour_angle(time, latitude)
-    julian_century = julian_century(time)
+  def self.hour_angle(date, latitude)
+    julian_century = julian_century(date)
     oblique_correction = oblique_correction(julian_century)
     declination = declination(oblique_correction, julian_century)
-    degrees(Math.acos(Math.cos(radians(90.833)) / (Math.cos(radians(latitude)) * Math.cos(radians(declination))) - Math.tan(radians(latitude)) * Math.tan(radians(declination))))
+    res = Math.cos(radians(SOLAR_ZENITH)) / (Math.cos(radians(latitude)) * Math.cos(radians(declination))) - Math.tan(radians(latitude)) * Math.tan(radians(declination))
+    degrees(Math.acos(res))
   end
 
-  def self.solar_noon_minutes(time, latitude, longitude)
-    720 - (4 * longitude) - equation_of_time(time, longitude)
+  # Base our calculations off the astronomical julian date for our input time.
+  # Our formula is sensitive to time of day, so we ignore it in order to give
+  # consistent results for any time on the same date.
+  def self.sun_time(type, time, latitude, longitude)
+    date = to_date(time)
+    minutes = sun_time_minutes(type, date, latitude, longitude)
+    date_at_time(date, minutes)
   end
 
-  def self.sunrise_minutes(time, latitude, longitude)
-    solar_noon_minutes(time, latitude, longitude) - 4 * hour_angle(time, latitude)
+  def self.sun_time_minutes(type, time, latitude, longitude)
+    date = to_date(time)
+    offset = offset_multiplier(type) * 4 * hour_angle(date, latitude)
+    720 - (4 * longitude) - equation_of_time(date, longitude) + offset
+  rescue Math::DomainError
+    raise InvalidCoordinates, "Could not determine solar noon for coordinates: #{latitude}, #{longitude}"
   end
 
-  def self.sunset_minutes(time, latitude, longitude)
-    solar_noon_minutes(time, latitude, longitude) + 4 * hour_angle(time, latitude)
+  def self.offset_multiplier(type)
+    case type
+    when :sunrise then -1
+    when :solar_noon then 0
+    when :sunset then 1
+    end
   end
 end
