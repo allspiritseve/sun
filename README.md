@@ -7,7 +7,7 @@
 * [Rubygem]
 
 [Source Code]: https://github.com/allspiritseve/sun "Source code at Github"
-[API documentation]: http://rubydoc.info/gems/sun/frames "RDoc API Documentation at RubyDoc.info"
+[API documentation]: http://www.rubydoc.info/gems/sun/file/README.md "RDoc API Documentation at RubyDoc.info"
 [Rubygem]: http://rubygems.org/gems/sun "Ruby gem at RubyGems.org"
 
 Sun is a solar calculator for Ruby based on the [National Oceanic & Atmospheric Administration (NOAA) solar calculator](http://www.esrl.noaa.gov/gmd/grad/solcalc/). Sunrise and sunset results are apparent times and not actual times (due to atmospheric refraction, apparent sunrise occurs shortly before the sun crosses above the horizon and apparent sunset occurs shortly after the sun crosses below the horizon).
