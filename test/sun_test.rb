@@ -94,10 +94,6 @@ class SunTest < Minitest::Test
     time.to_date
   end
 
-  def assert_sun_calculation(expected, actual, name = 'value', delta = Rational(1, 1000))
-    assert_in_delta expected, actual, delta, "#{name} was not in delta"
-  end
-
   def latitude
     40.75
   end

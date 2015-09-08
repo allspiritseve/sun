@@ -97,7 +97,7 @@ module Sun
 
   # MOD(280.46646+G2*(36000.76983 + G2*0.0003032),360)
   def self.geometric_mean_longitude(julian_century)
-    280.46646 + julian_century * (36000.76983 + julian_century * 0.0003032) % 360
+    (280.46646 + julian_century * (36000.76983 + julian_century * 0.0003032)) % 360
   end
 
   def self.y(oblique_correction)
