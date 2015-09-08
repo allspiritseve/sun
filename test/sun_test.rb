@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'tzinfo'
 
 class SunTest < Minitest::Test
   def test_julian_days
@@ -50,40 +49,24 @@ class SunTest < Minitest::Test
     hour_angle = Sun.hour_angle(date, latitude)
     assert_sun_calculation 69.79491113, hour_angle
 
-    solar_noon_minutes = Sun.solar_noon_minutes(time, latitude, longitude)
-    assert_sun_calculation 1019.27, solar_noon_minutes, 'solar noon minutes', Rational(1, 60)
-
-    solar_noon = Sun.solar_noon(date, latitude, longitude)
-    assert_sun_calculation Time.parse('2010-01-01 11:59:16 EST'), Time.at(solar_noon), 'solar_noon', 1
-
     sunrise_minutes = Sun.sunrise_minutes(time, latitude, longitude)
     assert_sun_calculation 740.0937314, sunrise_minutes, 'sunrise minutes', Rational(1, 60)
 
     sunrise = Sun.sunrise(date, latitude, longitude)
-    assert_sun_calculation Time.parse('2010-01-01 07:20:06 EST'), Time.at(sunrise), 'sunrise', 1
+    assert_sun_calculation Time.parse('2010-01-01 07:20:06 EST'), sunrise, 'sunrise', 1
+
+    solar_noon_minutes = Sun.solar_noon_minutes(time, latitude, longitude)
+    assert_sun_calculation 1019.27, solar_noon_minutes, 'solar noon minutes', Rational(1, 60)
+
+    solar_noon = Sun.solar_noon(date, latitude, longitude)
+    assert_sun_calculation Time.parse('2010-01-01 11:59:16 EST'), solar_noon, 'solar_noon', 1
 
     sunset_minutes = Sun.sunset_minutes(time, latitude, longitude)
     assert_sun_calculation 1298.45302, sunset_minutes, 'sunset minutes', Rational(1, 60)
 
     sunset = Sun.sunset(date, latitude, longitude)
-    assert_sun_calculation Time.parse('2010-01-01 16:38:27 EST'), Time.at(sunset), 'sunset', 1
+    assert_sun_calculation Time.parse('2010-01-01 16:38:27 EST'), sunset, 'sunset', 1
   end
-
-   def test_minutes_to_time_of_day
-     time_of_day = Sun.minutes_to_time_of_day(124 + Rational(576, 1000))
-     assert_equal [2, 4, 0.576], time_of_day
-
-     time_of_day = Sun.minutes_to_time_of_day(32.5)
-     assert_equal [0, 32, 0.5], time_of_day
-   end
-
-   def test_local_time
-     local_time = Sun.local_time(Date.new(2010, 1, 1), 124 + Rational(576, 1000))
-     assert_equal [2010, 1, 1, 2, 4, 0.576], local_time
-
-     local_time = Sun.local_time(Date.new(2015, 6, 30), 32.5)
-     assert_equal [2015, 6, 30, 0, 32, 0.5], local_time
-   end
 
   private
   def time
@@ -100,13 +83,5 @@ class SunTest < Minitest::Test
 
   def longitude
     -73.99
-  end
-
-  def day_of_year
-    Date.new(2015, 8, 26).yday
-  end
-
-  def timezone
-    @timezone ||= TZInfo::Timezone.get('America/Detroit')
   end
 end
