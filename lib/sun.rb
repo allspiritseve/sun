@@ -86,7 +86,7 @@ module Sun
     offset = offset_multiplier(type) * 4 * hour_angle(date, latitude)
     720 - (4 * longitude) - equation_of_time(date, longitude) + offset
   rescue Math::DomainError
-    raise InvalidCoordinates, "Could not determine solar noon for coordinates: #{latitude}, #{longitude}"
+    raise InvalidCoordinates, "Could not determine sun times for coordinates: #{latitude}, #{longitude}"
   end
 
   def self.offset_multiplier(type)
@@ -123,7 +123,6 @@ module Sun
     357.52911 + julian_century * (35999.05029 - 0.0001537 * julian_century)
   end
 
-  # MOD(280.46646+G2*(36000.76983 + G2*0.0003032),360)
   def self.geometric_mean_longitude(julian_century)
     (280.46646 + julian_century * (36000.76983 + julian_century * 0.0003032)) % 360
   end
