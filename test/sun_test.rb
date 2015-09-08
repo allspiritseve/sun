@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 
 class SunTest < Minitest::Test
   def test_julian_days
@@ -66,6 +66,18 @@ class SunTest < Minitest::Test
 
     sunset = Sun.sunset(date, latitude, longitude)
     assert_sun_calculation Time.parse('2010-01-01 16:38:27 EST'), sunset, 'sunset', 1
+  end
+
+  def test_invalid_coordinates
+    assert_raises Sun::InvalidCoordinates do
+      Sun.sunrise(time, 84, longitude)
+    end
+  end
+
+  def test_invalid_time
+    assert_raises Sun::InvalidTime do
+      Sun.sunrise(nil, latitude, longitude)
+    end
   end
 
   private

@@ -8,7 +8,13 @@ module Sun
   # 2000-01-01 12:00:00 UTC in Julian days
   JULIAN_CONSTANT = 2451545.to_r
 
-  class InvalidTime < StandardError
+  class Error < StandardError
+  end
+
+  class InvalidTime < Error
+  end
+
+  class InvalidCoordinates < Error
   end
 
   # Sun times (UTC)
@@ -64,10 +70,6 @@ module Sun
 
   def self.date_at_time(date, minutes)
     Time.at(date_to_unix_time(date) + minutes * 60)
-  end
-
-  def self.minutes_to_time_of_day(minutes)
-    [(minutes / 60).to_i, (minutes % 60).to_i, (minutes % 60) % 1]
   end
 
   # Base our calculations off the astronomical julian date for our input time.
@@ -137,7 +139,6 @@ module Sun
   def self.equation_of_center(julian_century)
     geometric_mean_anomoly = geometric_mean_anomoly(julian_century)
     Math.sin(radians(geometric_mean_anomoly)) * (1.914602 - julian_century * (0.004817 + 0.000014 * julian_century)) + Math.sin(radians(2 * geometric_mean_anomoly)) * (0.019993 - 0.000101 * julian_century) + Math.sin(radians(3 * geometric_mean_anomoly)) * 0.00028
-    # =SIN(RADIANS(J2))*(1.914602-G2*(0.004817+0.000014*G2))+SIN(RADIANS(2*J2))*(0.019993-0.000101*G2)+SIN(RADIANS(3*J2))*0.00028
   end
 
   def self.true_longitude(julian_century)

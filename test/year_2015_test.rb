@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'helper'
 require 'csv'
 require 'time'
 
@@ -97,11 +97,11 @@ class Year2015Test < Minitest::Test
           y: row['var y'].to_f,
           equation_of_time: row['Eq of Time (minutes)'].to_f,
           hour_angle: row['HA Sunrise (deg)'].to_f,
-          sunrise: parse_csv_time(date, row['Sunrise Time (LST)'], before: row['Solar Noon (LST)']),
+          sunrise: parse_csv_time(date, row['Sunrise Time (LST)']),
           sunrise_minutes: row['Sunrise Time Minutes (LST)'].to_f,
           solar_noon: parse_csv_time(date, row['Solar Noon (LST)']),
           solar_noon_minutes: row['Solar Noon Minutes (LST)'].to_f,
-          sunset: parse_csv_time(date, row['Sunset Time (LST)'], after: row['Solar Noon (LST)']),
+          sunset: parse_csv_time(date, row['Sunset Time (LST)'], row['Solar Noon (LST)']),
           sunset_minutes: row['Sunset Time Minutes (LST)'].to_f,
         }
       end
@@ -112,15 +112,13 @@ class Year2015Test < Minitest::Test
     Date.parse(value.split('/').values_at(2, 0, 1).join('-'))
   end
 
-  def self.parse_csv_time(date, value, options = {})
-    before_time = Time.parse("#{date} #{options[:before]}Z") if options.key?(:before)
-    after_time = Time.parse("#{date} #{options[:after]}Z") if options.key?(:after)
+  # Accept reference time for the rare case when UTC sun time is past midnight
+  def self.parse_csv_time(date, value, reference_value = nil)
+    reference_time = Time.parse("#{date} #{reference_value}Z") if reference_value
 
     time = Time.parse("#{date} #{value}Z")
 
-    if before_time && time > before_time
-      Time.parse("#{date - 1} #{value}Z")
-    elsif after_time && time < after_time
+    if reference_time && time < reference_time
       Time.parse("#{date + 1} #{value}Z")
     else
       time
@@ -128,9 +126,9 @@ class Year2015Test < Minitest::Test
   end
 
   (Date.new(2015, 1, 1)..Date.new(2016, 1, 1)).each do |date|
-    expected = expected_values.fetch(date)
+    expected = expected_values
     define_method "test_sun_times_#{date.iso8601}" do
-      @expected = expected
+      @expected = expected.fetch(date)
       assert_sun_times(date)
     end
   end
