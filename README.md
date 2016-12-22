@@ -1,6 +1,6 @@
 # Sun
 
-**Sunrise / sunset times for Ruby**
+**Solar calculator for Ruby**
 
 * [Source Code]
 * [API documentation]
@@ -48,10 +48,10 @@ Sun.sunset(time, latitude, longitude) # => 2015-01-01 16:38:16 -0500
 Sun.sunrise_minutes(time, latitude, longitude) # => 740.0366212342198
 
 # Solar noon in minutes after midnight (UTC)
-Sun.solar_noon(time, latitude, longitude) # => 1019.1596410575343
+Sun.solar_noon_minutes(time, latitude, longitude) # => 1019.1596410575343
 
 # Sunset in minutes after midnight (UTC)
-Sun.sunset(time, latitude, longitude) # => 1298.2826608808487
+Sun.sunset_minutes(time, latitude, longitude) # => 1298.2826608808487
 ```
 
 ## Notes
