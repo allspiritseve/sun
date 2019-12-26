@@ -80,6 +80,17 @@ class SunTest < Minitest::Test
     end
   end
 
+  def test_solar_noon_with_invalid_hour_angle
+    # Greenland
+    latitude = 71.706936
+    longitude = -42.604303
+    time = Time.parse('2019-12-10 12:00:00 -03:00')
+    solar_noon = Sun.solar_noon(time, latitude, longitude)
+    assert_sun_calculation Time.parse('2019-12-10 11:42:51 -03:00'), solar_noon, 'solar_noon', 1
+    assert_raises(Sun::InvalidCoordinates) { Sun.sunrise(time, latitude, longitude) }
+    assert_raises(Sun::InvalidCoordinates) { Sun.sunset(time, latitude, longitude) }
+  end
+
   private
   def time
     @time ||= Time.parse('2010-01-01 12:00:00 EST')

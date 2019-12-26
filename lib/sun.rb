@@ -83,7 +83,11 @@ module Sun
 
   def self.sun_time_minutes(type, time, latitude, longitude)
     date = date(time)
-    offset = offset_multiplier(type) * 4 * hour_angle(date, latitude)
+    if offset_multiplier(type) == 0
+      offset = 0
+    else
+      offset = offset_multiplier(type) * 4 * hour_angle(date, latitude)
+    end
     720 - (4 * longitude) - equation_of_time(date, longitude) + offset
   rescue Math::DomainError
     raise InvalidCoordinates, "Could not determine sun times for coordinates: #{latitude}, #{longitude}"
